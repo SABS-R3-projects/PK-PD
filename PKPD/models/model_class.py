@@ -4,6 +4,7 @@ class Model:
     def __init__(self, file_path):
         self.file_path = file_path
         self.model,  self.protocol, _ = myokit.load(self.file_path)
+        self.simulation = myokit.Simulation(self.model, self.protocol)
         self.vardict = {var.qname(): var.eval() for var in self.model.variables()}
 
     def set_variable(self, qname, value):
@@ -17,3 +18,12 @@ class Model:
 
     def get_params(self):
         pass
+
+    def update_simulation(self):
+        self.sim = myokit.Simulation(self.model, self.protocol)
+
+    def run_simulation(self, duration): # compartment_name=next(self.model.states()).qname())
+        self.sim_results = self.sim.run(duration, log=['engine.time', 'bolus.y_c'])
+
+    #  May want to change for simulation so timepoints align.
+
