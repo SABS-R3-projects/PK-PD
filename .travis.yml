@@ -13,7 +13,7 @@ install:
 # reqs for myokit below
   - pip install scipy sympy pyqt5 matplotlib
   - pip install myokit
-  - sudo apt-get install libsundials-dev
+  - sudo apt-get install libsundials-serial-dev
 # reqs for pints below
   - pip install numpy cma tabulate
 
