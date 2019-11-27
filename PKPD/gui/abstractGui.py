@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QWidget
 from abc import ABC, abstractmethod
 
 class AbstractMainWindow(QMainWindow):
@@ -38,23 +38,20 @@ class AbstractMainWindow(QMainWindow):
         # exit the application gracefully
         raise NotImplementedError
 
-class AbstractTab(ABC):
-    @abstractmethod
+
+class AbstractTab(QWidget):
     def _make_button(self):
         # draw a button
         raise NotImplementedError
 
-    @abstractmethod
     def _make_multiline_textbox(self):
         # draw a textbox for text input
         raise NotImplementedError
 
-    @abstractmethod
     def _make_graph(self):
         # instantiate a graph object
         raise NotImplementedError
 
-    @abstractmethod
     def _make_table(self):
         # make a tabular object
         raise NotImplementedError
