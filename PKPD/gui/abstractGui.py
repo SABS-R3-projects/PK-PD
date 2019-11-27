@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget
 from abc import ABC, abstractmethod
 
+
 class AbstractMainWindow(QMainWindow):
     def __init__(self):
         # initialise window size, style, icon, windowname, tab structure
