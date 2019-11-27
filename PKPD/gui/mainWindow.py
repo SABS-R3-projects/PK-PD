@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QPlainTextEdit, QLabel
 
 
 class MainWindow(AbstractMainWindow):
+    # How QMainWindow works (has a nice diagram): https://www.riverbankcomputing.com/static/Docs/PyQt4/qmainwindow.html
     def __init__(self):
         super().__init__()
         self.top_bar = QMenuBar()
@@ -18,6 +19,7 @@ class MainWindow(AbstractMainWindow):
         self.setMenuBar(self.top_bar)
         self.setCentralWidget(self.tab_view)
         self.setStatusBar(self.bottom_bar)
+        # we can add more stuff here once the Program gets more complicated
 
     def testUI(self):
         """Temporary function to see whether it is possible to build the window"""
