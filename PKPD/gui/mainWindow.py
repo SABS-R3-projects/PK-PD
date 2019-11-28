@@ -1,7 +1,6 @@
 import sys
 from PKPD.gui.abstractGui import AbstractMainWindow, AbstractTab
 from PyQt5.QtWidgets import QApplication, QMenuBar, QStatusBar, QTabWidget
-from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QVBoxLayout
 
 
 class MainWindow(AbstractMainWindow):
@@ -16,6 +15,7 @@ class MainWindow(AbstractMainWindow):
 
     def _set_geometry(self):
         """Method which sets the layout of the main window"""
+        self._set_tab_structure()
         self.setMenuBar(self.top_bar)
         self.setCentralWidget(self.tab_view)
         self.setStatusBar(self.bottom_bar)
@@ -26,9 +26,3 @@ class MainWindow(AbstractMainWindow):
         self.tab_view = QTabWidget()
         for tab in self.tabs:
             self.tab_view.addTab(tab, tab.name)
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
