@@ -3,18 +3,24 @@ from PKPD.gui import mainWindow as mw, abstractGui as abs
 from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QVBoxLayout, QApplication
 
 
-def testUI(wind):
+def test_ui(visualise=False):
     """Sees whether it is possible to build the main window"""
-    wind.top_bar.addMenu('File')
-    tab1, tab2 = TestTab("Model"), TestTab("Simulation")
-    wind.tabs = [tab1, tab2]
-    wind._set_tab_structure()
-    version_number = QLabel('Version: 0.0.0')
-    wind.bottom_bar.addWidget(version_number)
-    wind._set_geometry()
+    app = QApplication(sys.argv)
+    window = mw.MainWindow()
 
-    wind.setWindowTitle('PKPD')
-    wind.showMaximized()
+    window.top_bar.addMenu('File')
+    tab1, tab2 = TestTab("Model"), TestTab("Simulation")
+    window.tabs = [tab1, tab2]
+    version_number = QLabel('Version: 0.0.0')
+    window.bottom_bar.addWidget(version_number)
+    window._set_geometry()
+    window.setWindowTitle('PKPD')
+
+    if visualise:
+        window.showMaximized()
+        sys.exit(app.exec_())
+    else:
+        app.quit()
 
 
 class TestTab(abs.AbstractTab):
@@ -28,7 +34,5 @@ class TestTab(abs.AbstractTab):
         self.name = tab_name
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = mw.MainWindow()
-    testUI(window)
-    sys.exit(app.exec_())
+    test_ui()
+    # test_ui(visualise=True)
