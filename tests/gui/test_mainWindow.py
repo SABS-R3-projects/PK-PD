@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QPlainTextEdit, QLabel, QVBoxLayout, QApplication
 
 
 class Test_ui(unittest.TestCase):
-    def test_ui(visualise=False):
+    def test_ui(self, visualise=False):
         """Sees whether it is possible to build the main window"""
         app = QApplication(sys.argv)
         window = mw.MainWindow()
@@ -22,6 +22,7 @@ class Test_ui(unittest.TestCase):
             window.showMaximized()
             sys.exit(app.exec_())
         else:
+            self.assertTrue(True, msg=None)
             app.quit()
 
 
@@ -38,5 +39,4 @@ class TestTab(abs.AbstractTab):
 
 if __name__ == '__main__':
     Test = Test_ui
-    Test.test_ui()
     # Test.test_ui(visualise=True)
