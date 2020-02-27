@@ -21,7 +21,7 @@ class TestSingleOutputModel(unittest.TestCase):
         state_names = ['central_compartment.drug']
         output_name = 'central_compartment.drug_concentration'
         parameter_names = ['central_compartment.CL', 'central_compartment.V']
-        number_parameters_to_fit = 3
+        number_parameters_to_fit = 2  # since not fitting IC
 
         # assert initialised values coincide
         assert state_names == self.one_comp_model.state_names
@@ -35,7 +35,7 @@ class TestSingleOutputModel(unittest.TestCase):
         """
         # Test case I: 1-compartment model
         # expected
-        n_parameters = 3
+        n_parameters = 2  # since not fitting IC
 
         # assert correct number of parameters is returned.
         assert n_parameters == self.one_comp_model.n_parameters()
@@ -50,19 +50,31 @@ class TestSingleOutputModel(unittest.TestCase):
         # assert correct number of outputs.
         assert n_outputs == self.one_comp_model.n_outputs()
 
+    def test_set_initial_conditions(self):
+        """
+        Tests whether set_initial_conditions functions sets correct initial conditions
+        Returns:
+        """
+        old_ic = np.zeros(1)
+        assert old_ic == self.one_comp_model.initial_conditions  # check correct default
+        new_ic = np.array([2])
+        self.one_comp_model.set_initial_conditions(new_ic)
+        assert new_ic == self.one_comp_model.initial_conditions  # check set
+        self.one_comp_model.set_initial_conditions(old_ic)
+        assert old_ic == self.one_comp_model.initial_conditions  # check set back
+
     def test_simulate(self):
         """Tests whether the simulate method works as expected. Tests implicitly also whether the _set_parameters method
         works properly.
         """
         # Test case I: 1-compartment model
-        parameters = [0, 2, 4]  # different from initialised parameters
+        parameters = [2, 4]  # different from initialised parameters
         times = np.arange(25)
 
         # expected
         model, protocol, _ = myokit.load(self.file_name)
-        model.set_state([parameters[0]])
-        model.set_value('central_compartment.CL', parameters[1])
-        model.set_value('central_compartment.V', parameters[2])
+        model.set_value('central_compartment.CL', parameters[0])
+        model.set_value('central_compartment.V', parameters[1])
         simulation = myokit.Simulation(model, protocol)
         myokit_result = simulation.run(duration=times[-1]+1,
                                        log=['central_compartment.drug_concentration'],
@@ -109,7 +121,7 @@ class TestMultiOutputModel(unittest.TestCase):
         """
         # Test case I: 1-compartment model
         # expected
-        n_parameters = 7
+        n_parameters = 5  # since not including 2 states
 
         # assert correct number of parameters is returned.
         assert n_parameters == self.two_comp_model.n_parameters()
@@ -124,13 +136,29 @@ class TestMultiOutputModel(unittest.TestCase):
         # assert correct number of outputs.
         assert n_outputs == self.two_comp_model.n_outputs()
 
+    def test_set_initial_conditions(self):
+        """
+        Tests whether set_initial_conditions functions sets correct initial conditions
+        Returns:
+        """
+        old_ic = np.zeros(2)
+        for i in range(len(old_ic)):
+            assert old_ic[i] == self.two_comp_model.initial_conditions[i]  # check correct default
+        new_ic = np.array([2,2])
+        self.two_comp_model.set_initial_conditions(new_ic)
+        for i in range(len(old_ic)):
+            assert new_ic[i] == self.two_comp_model.initial_conditions[i]  # check set to new
+        self.two_comp_model.set_initial_conditions(old_ic)
+        for i in range(len(old_ic)):
+            assert old_ic[i] == self.two_comp_model.initial_conditions[i]  # check set back to old
+
     def test_simulate(self):
         """Tests whether the simulate method works as expected. Tests implicitly also whether the _set_parameters method
         works properly.
         """
         output_names = ['central_compartment.drug_concentration', 'peripheral_compartment.drug_concentration']
         state_dimension = 2
-        parameters = [0, 0, 1, 3, 5, 2, 2]  # states + parameters
+        parameters = [1, 3, 5, 2, 2]  # parameters - not including states
         parameter_names = ['central_compartment.CL',
                            'central_compartment.Kcp',
                            'central_compartment.V',
@@ -143,10 +171,9 @@ class TestMultiOutputModel(unittest.TestCase):
         # initialise model
         model, protocol, _ = myokit.load(self.file_name)
 
-        # set initial conditions and parameter values
-        model.set_state(parameters[:state_dimension])
+        # set parameter values
         for parameter_id, name in enumerate(parameter_names):
-            model.set_value(name, parameters[state_dimension + parameter_id])
+            model.set_value(name, parameters[parameter_id])
 
         # solve model
         simulation = myokit.Simulation(model, protocol)

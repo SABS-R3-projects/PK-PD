@@ -12,7 +12,7 @@ class SingleOutputModel(AbstractModel):
     employed. The sole difference to the MultiOutputProblem is that the simulate method returns a 1d array instead of a
     2d array.
     """
-    def __init__(self, mmt_file:str) -> None:
+    def __init__(self, mmt_file: str) -> None:
         """Initialises the model class.
 
         Arguments:
@@ -26,7 +26,22 @@ class SingleOutputModel(AbstractModel):
         self.state_dimension = model.count_states()
         self.output_name = self._get_default_output_name(model)
         self.parameter_names = self._get_parameter_names(model)
-        self.number_parameters_to_fit = model.count_variables(inter=False, bound=False)
+        self.initial_conditions = np.zeros(self.state_dimension)
+
+        # Identify which states are NOT called drug
+        non_drug_states = [name.split('.')[-1] != 'drug' for name in self.state_names]
+
+        # Infer initial conditions if at least one state doesn't correspond to drug
+        # If all states correspond to drug - set these to zero when solving forward problem/inference
+        # TODO Could use non_drug_states to do inference only on non drug states?
+        self.infer_initial_conditions = (np.sum(non_drug_states) > 0)
+
+
+        # Check if initial conditions included in inference
+        if self.infer_initial_conditions:  # include initial conditions
+            self.number_parameters_to_fit = model.count_variables(inter=False, bound=False)
+        else:  # just infer parameters
+            self.number_parameters_to_fit = len(self.parameter_names)
 
         # instantiate the simulation
         self.simulation = myokit.Simulation(model, protocol)
@@ -117,9 +132,20 @@ class SingleOutputModel(AbstractModel):
         Arguments:
             parameters {np.ndarray} -- Parameters of the model. By convention [initial condition, model parameters].
         """
-        self.simulation.set_state(parameters[:self.state_dimension])
-        for param_id, value in enumerate(parameters[self.state_dimension:]):
+        # Check if initial conditions are included in inference
+        if self.infer_initial_conditions:
+            # No modification required
+            params = parameters
+        else:
+            # Set initial conditions to zero by default
+            params = np.concatenate([self.initial_conditions, parameters])
+
+        self.simulation.set_state(params[:self.state_dimension])
+        for param_id, value in enumerate(params[self.state_dimension:]):
             self.simulation.set_constant(self.parameter_names[param_id], value)
+
+    def set_initial_conditions(self, initial_conditions: np.ndarray):
+        self.initial_conditions = initial_conditions
 
 
 class MultiOutputModel(AbstractModel):
@@ -142,7 +168,20 @@ class MultiOutputModel(AbstractModel):
         self.output_names = []
         self.output_dimension = None
         self.parameter_names = self._get_parameter_names(model)
-        self.number_parameters_to_fit = model.count_variables(inter=False, bound=False)
+        self.initial_conditions = np.zeros(self.state_dimension)
+
+        # Identify which states are NOT called drug
+        non_drug_states = [name.split('.')[-1] != 'drug' for name in self.state_names]
+
+        # Infer initial conditions if at least one state doesn't correspond to drug
+        # TODO Could use non_drug_states to do inference only on non drug states?
+        self.infer_initial_conditions = (np.sum(non_drug_states) > 0)
+
+        # Check if initial conditions included in inference
+        if self.infer_initial_conditions:  # include initial conditions in number of variables
+            self.number_parameters_to_fit = model.count_variables(inter=False, bound=False)
+        else:   # just infer parameters
+            self.number_parameters_to_fit = len(self.parameter_names)
 
         # instantiate the simulation
         self.simulation = myokit.Simulation(model, protocol)
@@ -211,8 +250,17 @@ class MultiOutputModel(AbstractModel):
         Arguments:
             parameters {np.ndarray} -- Parameters of the model. By convention [initial condition, model parameters].
         """
-        self.simulation.set_state(parameters[:self.state_dimension])
-        for param_id, value in enumerate(parameters[self.state_dimension:]):
+        # Check if inferring initial conditions
+        if self.infer_initial_conditions:
+            # No modification required
+            params = parameters
+        else:
+            # Set initial conditions to zero by default
+            params = np.concatenate([self.initial_conditions, parameters])
+
+        # Set parameters
+        self.simulation.set_state(params[:self.state_dimension])
+        for param_id, value in enumerate(params[self.state_dimension:]):
             self.simulation.set_constant(self.parameter_names[param_id], value)
 
     def set_output_dimension(self, data_dimension: int):
@@ -264,6 +312,9 @@ class MultiOutputModel(AbstractModel):
         """
         self.output_dimension = len(output_names)
         self.output_names = output_names
+
+    def set_initial_conditions(self, initial_conditions: np.ndarray):
+        self.initial_conditions = initial_conditions
 
 
 def set_unit_format():
